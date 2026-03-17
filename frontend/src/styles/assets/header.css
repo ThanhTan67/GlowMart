@@ -226,3 +226,75 @@
         gap: 12px;
     }
 }
+
+/* Thêm vào cuối file CSS hiện tại của bạn */
+
+/* Loading state */
+.auth-loading {
+    min-width: 100px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: #1d1d1f;
+    opacity: 0.5;
+}
+
+.loading-dots {
+    font-size: 16px;
+    letter-spacing: 2px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+}
+
+/* Đảm bảo actions có width cố định để tránh layout shift */
+.actions {
+    min-width: 120px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Style cho Sign up link */
+.signup-link {
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.signup-link:hover {
+    color: #0070f3;
+    text-decoration: none;
+}
+
+.user-btn {
+    transition: all 0.2s ease;
+}
+
+.user-btn, .sign-link, .signup-link {
+    min-width: 60px;
+    text-align: center;
+}
+
+.user-menu, .auth-links {
+    transition: opacity 0.15s ease;
+}
+
+@media (max-width: 768px) {
+    .actions {
+        min-width: auto;
+    }
+
+    .user-btn, .sign-link, .signup-link {
+        min-width: 50px;
+        font-size: 13px;
+    }
+
+    .auth-loading {
+        min-width: 60px;
+    }
+}

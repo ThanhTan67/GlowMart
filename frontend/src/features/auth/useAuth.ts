@@ -1,3 +1,4 @@
+// features/auth/useAuth.ts
 import { useState, useCallback, useEffect } from 'react';
 import { authService } from './authService';
 import {
@@ -15,13 +16,13 @@ export const useAuth = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [user, setUser] = useState<{ fullName: string } | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // Load user từ localStorage khi component mount
     useEffect(() => {
         const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-            setUser(currentUser);
-        }
+        setUser(currentUser);
+        setIsInitialized(true);
     }, []);
 
     // Lắng nghe sự thay đổi từ tab khác
@@ -32,9 +33,7 @@ export const useAuth = () => {
                 setUser(currentUser);
             }
         };
-
         window.addEventListener('storage', handleStorageChange);
-
         return () => {
             window.removeEventListener('storage', handleStorageChange);
         };
@@ -44,15 +43,13 @@ export const useAuth = () => {
     const login = useCallback(async (identifier: string, password: string) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.login(identifier, password);
-
             if (response.data?.fullName) {
-                // Set user state ngay lập tức
-                setUser({ fullName: response.data.fullName });
+                const userData = { fullName: response.data.fullName };
+                setUser(userData);
+                authService.setUser(userData);
             }
-
             setSuccess(response.message || 'Login successful');
             return response;
         } catch (err) {
@@ -68,7 +65,6 @@ export const useAuth = () => {
     const logout = useCallback(async () => {
         setIsLoading(true);
         setError('');
-
         try {
             await authService.logout();
             setUser(null);
@@ -90,28 +86,22 @@ export const useAuth = () => {
     ): string => {
         const rules = REGISTER_VALIDATION_RULES[name];
         if (!rules) return '';
-
         if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
             return rules.required;
         }
-
         if (rules.minLength && value && value.length < rules.minLength.value) {
             return rules.minLength.message;
         }
-
         if (rules.maxLength && value && value.length > rules.maxLength.value) {
             return rules.maxLength.message;
         }
-
         if (rules.pattern && value && !rules.pattern.value.test(value)) {
             return rules.pattern.message;
         }
-
         if (rules.validate) {
             const result = rules.validate(value, formData);
             if (typeof result === 'string') return result;
         }
-
         return '';
     }, []);
 
@@ -119,7 +109,6 @@ export const useAuth = () => {
         formData: RegisterFormData
     ): FormErrors => {
         const errors: FormErrors = {};
-
         Object.keys(REGISTER_VALIDATION_RULES).forEach(key => {
             const error = validateRegisterField(
                 key,
@@ -130,14 +119,12 @@ export const useAuth = () => {
                 errors[key] = error;
             }
         });
-
         return errors;
     }, [validateRegisterField]);
 
     const register = useCallback(async (data: Omit<RegisterFormData, 'confirmPassword' | 'terms'>) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.register(data);
             setSuccess(response.message || 'Registration successful');
@@ -176,35 +163,29 @@ export const useAuth = () => {
         step: 'EMAIL' | 'OTP' | 'RESET'
     ): FormErrors => {
         const errors: FormErrors = {};
-
         if (step === 'EMAIL') {
             const emailError = FORGOT_PASSWORD_RULES.email(formData.email);
             if (emailError) errors.email = emailError;
         }
-
         if (step === 'OTP') {
             const otpError = FORGOT_PASSWORD_RULES.otp(formData.otp);
             if (otpError) errors.otp = otpError;
         }
-
         if (step === 'RESET') {
             const passwordError = FORGOT_PASSWORD_RULES.password(formData.newPassword);
             if (passwordError) errors.newPassword = passwordError;
-
             const confirmError = FORGOT_PASSWORD_RULES.confirmPassword(
                 formData.confirmPassword,
                 formData.newPassword
             );
             if (confirmError) errors.confirmPassword = confirmError;
         }
-
         return errors;
     }, []);
 
     const forgotPassword = useCallback(async (email: string) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.forgotPassword(email);
             setSuccess(response.message || 'Verification code sent');
@@ -221,7 +202,6 @@ export const useAuth = () => {
     const verifyOTP = useCallback(async (email: string, otp: string) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.verifyOTP(email, otp);
             setSuccess(response.message || 'Email verified successfully');
@@ -243,7 +223,6 @@ export const useAuth = () => {
     ) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.resetPassword(email, otp, newPassword, confirmPassword);
             setSuccess(response.message || 'Password reset successful');
@@ -260,7 +239,6 @@ export const useAuth = () => {
     const resendOTP = useCallback(async (email: string) => {
         setIsLoading(true);
         setError('');
-
         try {
             const response = await authService.resendOTP(email);
             setSuccess(response.message || 'Verification code resent');
@@ -286,16 +264,14 @@ export const useAuth = () => {
         success,
         user,
         isAuthenticated: !!user,
-
+        isInitialized,
         // Login/Logout
         login,
         logout,
-
         // Register
         validateRegisterField,
         validateRegisterForm,
         register,
-
         // Forgot Password
         validateForgotPasswordField,
         validateForgotPasswordForm,
@@ -303,7 +279,6 @@ export const useAuth = () => {
         verifyOTP,
         resetPassword,
         resendOTP,
-
         // Utilities
         clearMessages,
         setError,

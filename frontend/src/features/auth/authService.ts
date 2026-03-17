@@ -1,3 +1,4 @@
+// features/auth/authService.ts
 import {
     LoginRequest,
     RegisterRequest,
@@ -56,8 +57,17 @@ class AuthService {
         if (typeof window === 'undefined') return;
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
+            // Dispatch event để các tab khác cập nhật
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'user',
+                newValue: JSON.stringify(user)
+            }));
         } else {
             localStorage.removeItem('user');
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'user',
+                newValue: null
+            }));
         }
     }
 
@@ -96,7 +106,6 @@ class AuthService {
 
     async logout(shouldRedirect = true): Promise<void> {
         const token = this.getAccessToken();
-
         try {
             if (token) {
                 await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
@@ -105,6 +114,7 @@ class AuthService {
                 });
             }
         } catch {
+            // Silent fail
         } finally {
             this.clearTokens();
             this.setUser(null);
