@@ -26,14 +26,8 @@ const authenticatedUserLinks = [
 
 export default function Header() {
     const [open, setOpen] = useState(false);
-    const [userKey, setUserKey] = useState(Date.now()); // Key để force re-render
     const menuRef = useRef<HTMLDivElement | null>(null);
     const { user, isAuthenticated, logout } = useAuth();
-
-    // Force re-render khi user thay đổi
-    useEffect(() => {
-        setUserKey(Date.now());
-    }, [user]);
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -53,7 +47,7 @@ export default function Header() {
     };
 
     return (
-        <header className="header" key={userKey}> {/* Thêm key để force re-render */}
+        <header className="header">
             <nav className="nav">
                 <div className="logo">SNEAKER</div>
 
